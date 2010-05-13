@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+use strict;
+use Media::Sort qw(getmedia);
+use Flexget::Parse qw(flexparse);
+use Flexget::PatternMatch qw(patternmatch);
+use Data::Dumper;
+
+
+my $log = "$ENV{HOME}/.flexget.log";
+open(my $fh, '<',$log) or die "Cant open $log: $!";
+my @releases = <$fh>;
+close $fh;
+
+@releases = patternmatch(flexparse(@releases));
+
+sub whatsnew {
+  printf("\033[38;5;100mMV\033[0m %s\n", $_)
+    for getmedia('mvids', @releases);
+    printf("-%36s\n", '-');
+  printf("\033[38;5;200mTV\033[0m %s\n", $_)
+    for getmedia('tv', @releases);
+    printf("-%36s\n", '-');
+  printf("\033[38;5;37mMU\033[0m %s\n", $_)
+    for getmedia('music', @releases);
+}
+
+whatsnew();
