@@ -1,27 +1,68 @@
 #!/usr/bin/perl
+my $APP = 'rel';
+my $VERSION = '0.3';
+
 use strict;
 use Media::Sort qw(getmedia);
 use Flexget::Parse qw(flexparse);
 use Flexget::PatternMatch qw(patternmatch);
 use Data::Dumper;
+use Carp;
 
 
-my $log = "$ENV{HOME}/.flexget.log";
-open(my $fh, '<',$log) or die "Cant open $log: $!";
-my @releases = <$fh>;
-close $fh;
+my $dir = undef;
+my $log = "$ENV{HOME}/.flexget.log"; 
+my $choice = shift or fromlog($log);
+my $arg    = shift or undef;
 
-@releases = patternmatch(flexparse(@releases));
+my $options = {
+  dir  => sub {$dir = shift;print "$_\n" for fromdir($dir);},
+  h    => sub {usage();},
+  help => sub {usage();},
+};
 
-sub whatsnew {
-  printf("\033[38;5;100mMV\033[0m %s\n", $_)
-    for getmedia('mvids', @releases);
-    printf("-%36s\n", '-');
-  printf("\033[38;5;200mTV\033[0m %s\n", $_)
+defined $options->{$choice} && $options->{$choice}->($arg);
+
+sub fromdir {
+  my $dir = shift or croak "Specify a dir!";
+  opendir(my $dh, $dir) or die "Cant opendir $dir: $!";
+  my @releases = getmedia('',readdir($dh));
+  return patternmatch(@releases);
+}
+
+sub fromlog {
+  my $log = shift;
+  open(my $fh, '<', $log) or croak "Cant open $log: $!";
+  my @releases = <$fh>;
+  close $fh;
+
+  my @releases = patternmatch(flexparse(@releases));
+  printf("\033[38;5;100mTV\033[0m %s\n", $_)
     for getmedia('tv', @releases);
-    printf("-%36s\n", '-');
+  printf("-%36s\n", '-') unless((getmedia('tv',@releases)) < 1);
+  printf("\033[38;5;200mMV\033[0m %s\n", $_)
+    for getmedia('mvids', @releases);
+  printf("-%36s\n", '-') unless((getmedia('mvids',@releases)) < 1);
   printf("\033[38;5;37mMU\033[0m %s\n", $_)
     for getmedia('music', @releases);
 }
 
-whatsnew();
+sub usage {
+  print << "USAGE";
+  $APP $VERSION
+
+  USAGE: $0 [OPTIONS] (ARGUMENTS)
+
+    SYNOPSIS
+      $APP shows how to combine Flexget::Parse, Flexget::PatternMatch
+      and Media::Sort to make a notifier/sorter of media
+
+    OPTIONS
+      dir   specify a dir to look in
+
+    EXAMPLES
+      $0              # list new items in the flexget log
+      $0 dir ~/music  # list items in dir
+
+USAGE
+}
