@@ -15,14 +15,32 @@ my $log = "$ENV{HOME}/.flexget.log";
 my $choice = shift or fromlog($log);
 my $arg    = shift or undef;
 
+my %wanted = (
+  '(?i)fringe'        => "\033[38;5;100m",
+);
+
+my $nc = "\033[0m";
+
 my $options = {
-  dir  => sub {$dir = shift;print "$_\n" for fromdir($dir);},
+  dir  => sub {$dir = shift;print "$_\n" for wanted(fromdir($dir));},
   h    => sub {usage();},
   help => sub {usage();},
+  '-h' => sub {usage();},
 };
 
 defined $options->{$choice} && $options->{$choice}->($arg);
 
+sub wanted {
+  my @rels = @_;
+  foreach my $rel(@rels) {
+    foreach my $pattern(keys(%wanted)) {
+      if($rel =~ /$pattern/) {
+        $rel = $wanted{$pattern}.$rel.$nc;
+      }
+    }
+  }
+  return @rels;
+}
 sub fromdir {
   my $dir = shift or croak "Specify a dir!";
   unless(-d $dir) {croak "$dir is not a dir!"};
