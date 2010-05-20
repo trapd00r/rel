@@ -12,14 +12,28 @@ use Carp;
 
 my $dir = undef;
 my $log = "$ENV{HOME}/.flexget.log"; 
-my $choice = shift or fromlog($log);
-my $arg    = shift or undef;
+#my$log = "/home/scp1/lessflexlog.log";
 
 my %wanted = (
-  '(?i)fringe'        => "\033[38;5;100m",
+  '(?i)fringe'                   => "\033[38;5;100m",
+  '(?i)^house\.'                 => "\033[38;5;101m",
+  '(?i)vetenskapens'             => "\033[38;5;102m",
+  '(?i)dokumentar'               => "\033[38;5;103m",
+  '(?i)documentary'              => "\033[38;5;104m",
+  '(?i)national\.geographic'     => "\033[38;5;105m",
+  '(?i)pa\.sparet'               => "\033[38;5;106m",
+  '(?i)talang'                   => "\033[38;5;107m",
+  '(?i)simpsons'                 => "\033[38;5;108m",
+  '(?i)smallville'               => "\033[38;5;109m",
+  '(?i)uppdrag\.granskning'      => "\033[38;5;110m",
+  '(?i)dokument\.(:?in|ut)ifran' => "\033[38;5;111m",
+  '(?i)kalla\.fakta'             => "\033[38;5;112m",
 );
 
 my $nc = "\033[0m";
+
+my $choice = shift or fromlog($log);
+my $arg    = shift or undef;
 
 my $options = {
   dir  => sub {$dir = shift;print "$_\n" for wanted(fromdir($dir));},
@@ -56,7 +70,7 @@ sub fromlog {
   my @releases = <$fh>;
   close $fh;
 
-  my @releases = patternmatch(flexparse(@releases));
+  my @releases = wanted(patternmatch(flexparse(@releases)));
   printf("\033[38;5;100mTV\033[0m %s\n", $_)
     for getmedia('tv', @releases);
   printf("-%36s\n", '-') unless((getmedia('tv',@releases)) < 1);
