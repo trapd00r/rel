@@ -1,7 +1,5 @@
 #!/usr/bin/perl
-#TODO Integrera med inotify-skiten
-my $APP = 'rel';
-my $VERSION = '0.3';
+our $VERSION = '0.3.1';
 
 use strict;
 use Media::Sort qw(getmedia);
@@ -12,11 +10,10 @@ use Carp;
 
 my $dir = undef;
 my $log = "$ENV{HOME}/.flexget.log"; 
-#my$log = "/home/scp1/lessflexlog.log";
 
 my %wanted = (
-  '(?i)fringe'                   => "\033[38;5;100m",
-  '(?i)^house\.'                 => "\033[38;5;101m",
+  '(?i)fringe'                   => "\033[38;5;100m\033[1m",
+  '(?i)^house\.'                 => "\033[38;5;101m\033[1m",
   '(?i)vetenskapens'             => "\033[38;5;102m",
   '(?i)dokumentar'               => "\033[38;5;103m",
   '(?i)documentary'              => "\033[38;5;104m",
@@ -25,19 +22,18 @@ my %wanted = (
   '(?i)talang'                   => "\033[38;5;107m",
   '(?i)simpsons'                 => "\033[38;5;108m",
   '(?i)smallville'               => "\033[38;5;109m",
-  '(?i)uppdrag\.granskning'      => "\033[38;5;110m",
+  '(?i)uppdrag\.granskning'      => "\033[38;5;110m\033[1m",
   '(?i)dokument\.(:?in|ut)ifran' => "\033[38;5;111m",
   '(?i)kalla\.fakta'             => "\033[38;5;112m",
 );
 
-my $nc = "\033[0m";
 
-my $choice = shift or fromlog($log);
+my $choice = shift // fromlog($log);
 my $arg    = shift or undef;
 
+my $nc = "\033[0m";
 my $options = {
   dir  => sub {$dir = shift;print "$_\n" for wanted(fromdir($dir));},
-  h    => sub {usage();},
   help => sub {usage();},
   '-h' => sub {usage();},
 };
@@ -46,10 +42,20 @@ defined $options->{$choice} && $options->{$choice}->($arg);
 
 sub wanted {
   my @rels = @_;
+  my ($bd,$it,$def) = ("\033[1m", "\033[3m", "\033[0m");
+  my $fg  = "\033[38;5";
+  my $bg  = "\033[48;5";
+
   foreach my $rel(@rels) {
     foreach my $pattern(keys(%wanted)) {
       if($rel =~ /$pattern/) {
-        $rel = $wanted{$pattern}.$rel.$nc;
+        $rel = "\033[1m".$wanted{$pattern}.$rel.$nc;
+      }
+      if($rel =~ m;(.+\.)(swedish|swe(?:sub)?)(\..+);i) {
+        $rel = "$bd$1$fg;154m$2$def$it$fg;240m$3$def";
+      }
+      if($rel =~ m;(.+\.)(720p|1080p)(\..+);) {
+        $rel = "$bd$1$fg;160m$2$def$it$fg;240m$3$def";
       }
     }
   }
@@ -71,33 +77,33 @@ sub fromlog {
   close $fh;
 
   my @releases = wanted(patternmatch(flexparse(@releases)));
-  printf("\033[38;5;100mTV\033[0m %s\n", $_)
+  printf("\033[38;5;100m\033[3mTV\033[0m %s\n", $_)
     for getmedia('tv', @releases);
   printf("-%36s\n", '-') unless((getmedia('tv',@releases)) < 1);
-  printf("\033[38;5;200mMV\033[0m %s\n", $_)
+  printf("\033[38;5;200m\033[3mMV\033[0m %s\n", $_)
     for getmedia('mvids', @releases);
   printf("-%36s\n", '-') unless((getmedia('mvids',@releases)) < 1);
-  printf("\033[38;5;37mMU\033[0m %s\n", $_)
+  printf("\033[38;5;37m\033[3mMU\033[0m %s\n", $_)
     for getmedia('music', @releases);
 }
 
 sub usage {
   print << "USAGE";
-  $APP $VERSION
+  rel $VERSION
 
-  USAGE: $0 [OPTIONS] (ARGUMENTS)
+  USAGE: rel [OPTIONS] (ARGUMENTS)
 
     SYNOPSIS
-      $APP shows how to combine Flexget::Parse, Flexget::PatternMatch
-      and Media::Sort to make a notifier/sorter of media
+      rel shows how to combine Flexget::Parse, Flexget::PatternMatch and
+      Media::Sort to make a notifier/sorter of media files and releases
 
     OPTIONS
       dir    specify a dir to look in
-      h,help show this message
+      help   show this message
 
     EXAMPLES
-      $0              # list new items in the flexget log
-      $0 dir ~/music  # list items in dir
+      rel              # list new items in the flexget log
+      rel dir ~/music  # list items in dir
 
 USAGE
 }
