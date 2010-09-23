@@ -1,28 +1,32 @@
 #!/usr/bin/perl
+our $APP     = 'rel';
+our $VERSION = 2.0;
 use strict;
 use Flexget::Parse;
 use Flexget::PatternMatch;
 use Media::Sort;
 use Data::Dumper::Concise;
 use Getopt::Long;
-
-my $l = shift // "/mnt/shiva/.flexget.log";
-open(my $fh, '<', $l) or die($!);
-my @r = <$fh>;
-close($l);
-
-my $rel = patternmatch('none', flexparse(@r));
+use Pod::Usage;
 
 our $style = 256;
 GetOptions(
   color  => sub { $style = 256; },
   dzen   => sub { $style = 'dzen'; },
   none   => sub { $style = 'none'; },
+  help   => sub { pod2usage(verbose => 1); },
 );
+
+
+my $l = shift // "/mnt/shiva/.flexget.log";
+open(my $fh, '<', $l) or die($!);
+my @r = <$fh>;
+close($l);
 
 my $rel = patternmatch($style, flexparse(@r));
 
 my %wanted = (
+  #FIXME Implement all this in Flexget::PatternMatch
   name  => {
     'gyro'                      => "\e[38;5;197m\e[1m",
     'Fighter'                   => "\e[48;5;100m$1\e[0m",
@@ -34,21 +38,23 @@ my %wanted = (
     'Lite\.Sallskap'            => "\e[38;5;208m\e[1m",
   },
   info  => {
-    'HDTV'      => "\e[3m\e[38;5;33m",
-    'PDTV'      => "\e[3m\e[38;5;45m",
-    'S01E01'    => "\e[38;5;106m",
-    '720p'      => "\e[38;5;196m",
-    'E01'       => "\e[38;5;191m",
-    'S01'       => "\e[38;5;221m",
+    'HDTV'                      => "\e[3m\e[38;5;33m",
+    'PDTV'                      => "\e[3m\e[38;5;45m",
+    'S01E01'                    => "\e[38;5;106m",
+    '720p'                      => "\e[38;5;196m",
+    'E01'                       => "\e[38;5;191m",
+    'S01'                       => "\e[38;5;221m",
   },
   group => {
-    '.+UPE'     => "\e[1m\e[38;5;148m",
-    '.+PsyCZ.*' => "\e[1m\e[38;5;148m",
-    'LOL'       => "\e[38;5;130m",
-    'FRAY'      => "\e[38;5;240m",
-    '.+SHELTER' => "\e[1m",
+    '.+UPE'                     => "\e[1m\e[38;5;148m",
+    '.+PsyCZ.*'                 => "\e[1m\e[38;5;148m",
+    'LOL'                       => "\e[38;5;130m",
+    'FRAY'                      => "\e[38;5;240m",
+    '.+SHELTER'                 => "\e[1m",
   },
 );
+
+talk($rel);
 
 sub talk {
   my $h = shift;
@@ -83,4 +89,25 @@ sub talk {
     }
   }
 }
-talk($rel);
+
+=pod
+
+=head1 NAME
+
+  rel
+
+=head1 DESCRIPTION
+
+=head1 OPTIONS
+
+        --256     extended color output
+  -d,   --dzen    dzen output
+  -n,   --none    normal output
+
+  -h,   --help    show the help and exit
+
+=head1 AUTHOR
+
+Written by Magnus Woldrich
+
+=cut
