@@ -6,7 +6,6 @@ use Flexget::Parse;
 use Flexget::PatternMatch;
 use Media::Sort;
 use Data::Dumper::Concise;
-use String::Utils 'longest';
 use Getopt::Long;
 use Pod::Usage;
 
@@ -27,7 +26,6 @@ my @r = <$fh>;
 close($l);
 
 my $rel = patternmatch($style, flexparse(@r));
-
 
 talk($rel, $opt_no_wanted);
 
