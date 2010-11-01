@@ -20,7 +20,7 @@ GetOptions(
 );
 
 
-my $l = shift // "/mnt/shiva/.flexget.log";
+my $l = shift // "$ENV{HOME}/.flexget.log";
 open(my $fh, '<', $l) or die($!);
 my @r = <$fh>;
 close($l);
@@ -31,7 +31,7 @@ talk($rel, $opt_no_wanted);
 
 sub talk {
   my $h = shift;
-  print my $no_wanted = shift;
+  my $no_wanted = shift;
   return if !$h;
 
 
