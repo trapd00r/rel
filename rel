@@ -5,9 +5,17 @@ use strict;
 use Flexget::Parse;
 use Flexget::PatternMatch;
 use Media::Sort;
-use Data::Dumper::Concise;
+use Data::Dumper;
 use Getopt::Long;
 use Pod::Usage;
+
+$Data::Dumper::Terse     = 1;
+$Data::Dumper::Indent    = 1;
+$Data::Dumper::Useqq     = 1;
+$Data::Dumper::Deparse   = 1;
+$Data::Dumper::Quotekeys = 0;
+$Data::Dumper::Sortkeys  = 1;
+
 
 our $style = 256;
 our $opt_no_wanted = 1024;
@@ -15,13 +23,14 @@ GetOptions(
   'color'    => sub { $style = 256; },
   'dzen'     => sub { $style = 'dzen'; },
   'plain'    => sub { $style = 'none'; },
+  'html'     => sub { $style = 'html'; },
   'number:i' => \$opt_no_wanted,
   'help'     => sub { pod2usage(verbose => 1); },
 );
 
 
-my $l = shift // "$ENV{HOME}/.flexget.log";
-open(my $fh, '<', $l) or die($!);
+my $l = shift // "$ENV{XDG_DATA_HOME}/flexget/flexget.log";
+open(my $fh, '<', $l) or print STDERR "No log found today.\n" and exit 1;
 my @r = <$fh>;
 close($l);
 
