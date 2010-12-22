@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 our $APP     = 'rel';
-our $VERSION = 2.2;
+our $VERSION = '2.21';
 use strict;
 use Flexget::Parse;
 use Flexget::PatternMatch;
