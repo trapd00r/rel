@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 our $APP     = 'rel';
-our $VERSION = '2.21';
+our $VERSION = '2.22';
 use strict;
-use Flexget::Parse;
-use Flexget::PatternMatch;
+use Parse::Flexget;
+use File::PatternMatch;
 use Media::Sort;
 use Data::Dumper;
 use Getopt::Long;
